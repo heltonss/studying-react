@@ -20,19 +20,34 @@ var Excel = React.createClass({
     headers: React.PropTypes.arrayOf(
       React.PropTypes.string
     ),
-    initialData: React.propTypes.arrayOf(
-      React.propTypes.arrayOf(
-        React.PropTypes.string
+    initialData: React.PropTypes.arrayOf(
+      React.PropTypes.arrayOf(
+        React.PropTypes.any
       )
     )
   },
   getInitialState: function () {
-    return {data: this.props.initialData}
+    return {
+      data: this.props.initialData,
+      sortBy: null,
+      descending: false
+    }
+  },
+  _sort: function (e) {
+    var column = e.target.cellIndex;
+    //copia os dados
+    var data = this.state.data.slice();
+    data.sort(function (a, b) { 
+      return a[column] > b[column] ? 1 : -1; 
+     });
+    this.setState({
+      data: data
+    })
   },
   render: function () {
     return (
     React.DOM.table(null,
-      React.DOM.thead(null,
+      React.DOM.thead({onClick: this._sort},
         React.DOM.tr(null,
           this.props.headers.map(function (title, idx) {
             return React.DOM.th({key: idx}, title)
