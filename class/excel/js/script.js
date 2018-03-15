@@ -21,7 +21,35 @@ var Excel = React.createClass({
       search: false
     }
   },
-
+  _log: [],
+  _logSetSate: function (newSate) { 
+    // guarda o estado antigo
+    this._log.push(JSON.parse(JSON.stringify(
+      this._log.length === 0 ? this.state : newState
+    )))
+    this.setState(newSate);
+   },
+  _replay: function () { 
+    if (this._log.length === 0) {
+        console.warn('No state to replay yet');
+        return;
+      }
+      var idx = -1;
+      var interval = setInterval(function() {
+        idx++;
+        if (idx === this._log.length - 1) { // the end
+          clearInterval(interval);
+        }
+        this.setState(this._log[idx]);
+      }.bind(this), 1000);
+    },
+  componentDidMount: function (newState) { 
+      document.onkeydown = function (e) { 
+        if(e.altKey && e.shiftKey && e.keyCode === 82) { //alt + shift + R
+          this._replay()  
+        }
+      }
+   },
   _sort: function (e) {
     var column = e.target.cellIndex
     // copia os dados
