@@ -17,7 +17,8 @@ var Excel = React.createClass({
       data: this.props.initialData,
       sortby: null,
       descending: false,
-      edit: null
+      edit: null,
+      search: false
     }
   },
 
@@ -54,8 +55,36 @@ var Excel = React.createClass({
       data: data
     })
   },
+  _preSearchData: null,
 
-  render: function () {
+  
+  _toggleSearch: function () { 
+    if (this.state.search) {
+      this.setState({
+        data: this.__preSearchData,
+        search: false
+      });
+      this.__preSearchData = null
+    } else {
+      this.__preSearchData = this.state.data;
+      this.setState({
+        search: true
+      })
+    }
+   },
+  _search: function (e) { 
+    var needle = e.target.value.toLowerCase();
+    if (!needle) { //a string de pesquisa foi apagada.
+      this.setState({data: this.__preSearchData});
+      return;
+    }
+    var idx = e.target.dataset.idx; // a coluna a ser pesquisada
+    var searchdata = this.__preSearchData.filter(function (row) { 
+      return row[idx].toString().toLowerCase().indexOf(needle) > -1;
+     });
+    this.setState({data: searchdata});
+   },
+  _renderTable: function () {
     return (
     React.DOM.table(null,
       React.DOM.thead({onClick: this._sort},
@@ -69,6 +98,7 @@ var Excel = React.createClass({
         )),
 
       React.DOM.tbody({onDoubleClick: this._showEditor},
+        this._renderSearch(),
         this.state.data.map(function (row, rowidx) {
           return (
           React.DOM.tr({key: rowidx},
@@ -95,6 +125,40 @@ var Excel = React.createClass({
           )
         }, this)
       )
+    )
+    )
+  },
+  _renderToolbar: function () {
+    return React.DOM.button(
+      {
+        onClick: this._toggleSearch,
+        className: 'toolbar'
+      },
+      'search'
+    )
+  },
+  _renderSearch: function () {
+    if (!this.state.search) {
+      return null
+    }
+    return (
+    React.DOM.tr({onChange: this._search},
+      this.props.headers.map(function (_ignore, idx) {
+        return React.DOM.td({key: idx},
+          React.DOM.input({
+            type: 'text',
+            'data-idx': idx
+          })
+        )
+      })
+    )
+    )
+  },
+  render: function () {
+    return (
+    React.DOM.div(null,
+      this._renderToolbar(),
+      this._renderTable(),
     )
     )
   }
